@@ -12,6 +12,8 @@ var ctI1 = 0;
 var ctI2 = 0;
 var isSquaring = false;
 var locked = false;
+var runs = 0;
+var startProcessTime = 0;
 window.onload = function () {
     btnStart = document.getElementById("btnStart");
     btnSave = document.getElementById("btnSave");
@@ -65,6 +67,8 @@ function ProcessSquare(txtOut, callback) {
     ctI1 = 0;
     ctI2 = 0;
     isSquaring = true;
+    runs = 0;
+    startProcessTime = new Date();
     setTimeout(function () { processchunk(txtOut, callback) }, 10);
 }
 
@@ -77,7 +81,7 @@ function processchunk(txtOut, callback) {
         finished = square(txtOut);
     } while ((!finished) && (endtime > new Date()));
     if (!finished) {
-        if (locked) { alert("Locked"); }
+        runs += 1;
         setTimeout(function () { processchunk(txtOut, callback) }, delay);
     } else {
         if (callback) callback();
@@ -85,7 +89,6 @@ function processchunk(txtOut, callback) {
 }
 
 function square(txtOut) {
-    locked = true;
     if (lng == 0) {
         lng = cpZVal.length;
     }
@@ -105,20 +108,22 @@ function square(txtOut) {
             resul.push(m);
             ct += 1;
         }
-        if (ctI1 % Math.floor(lng / 1000) == 0) {
-            txtOut.innerHTML =
-                String(ct) + " elements done.\n" + String(ctI1) + " out of" + String(lng) + " items procesed.";
-        }
     }
+
     ctI2++;
     if (ctI2 == lng) {
         ctI2 = 0;
         ctI1++;
         if (ctI1 == lng) isSquaring = false;
-        else textoutput.innerHTML += "\nPass " + String(ctI1) + " out of " + String(lng);
+        else {
+            var timePassed = (new Date() - startProcessTime) / 1000;
+            var updatetxt = "\nPass " + String(ctI1) + " out of " +
+                String(lng) + ". " + String(runs) + " runs in " + String(timePassed) +
+                " (" + String(runs / timePassed) + " runs/second)";
+            textoutput.innerHTML += updatetxt;
+        }
+        return !isSquaring;
     }
-    locked = false;
-    return !isSquaring;
 }
 
 function updateZVal() {
@@ -130,37 +135,6 @@ function updateZVal() {
     resul = [];
     textoutput.innerHTML = "z" + String(z) + " => Size: " + String(zVal.length);
     return;
-}
-
-function square_old(arr, txtOut) {
-    var resul = [];
-    var ct = 0;
-    var lng = arr.length;
-    txtOut.innerHTML = "Starting....";
-    for (var ctI1 = 0; ctI1 < lng; ctI1++) {
-        textoutput.innerHTML += "\nPass " + String(ctI1) + " out " + String(lng);
-        for (var ctI2 = 0; ctI2 < lng; ctI2++) {
-            var m = arr[ctI1].mult(arr[ctI2]);
-            var dupl = false;
-            for (var idx = 0; idx < resul.length; idx++) {
-                var r = resul[idx];
-                if (r.aExp == m.aExp && r.bExp == m.bExp && r.imag == m.imag) {
-                    r.coeff += m.coeff;
-                    dupl = true;
-                    break;
-                }
-            }
-            if (!dupl) {
-                resul.push(arr[ctI1].mult(arr[ctI2]));
-                ct += 1;
-            }
-            if (ctI1 % Math.floor(lng / 1000) == 0) {
-                txtOut.innerHTML =
-                    String(ct) + " elements done.\n" + String(ctI1) + " out of" + String(lng) + " items procesed.";
-            }
-        }
-    }
-    return resul;
 }
 
 function sortCoeff(g, h) {
